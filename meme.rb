@@ -3,7 +3,7 @@ require 'json'
 require 'net/http'
 require_relative 'markov.rb'
 
- url = "http://version1.api.memegenerator.net/Instances_Select_ByNew?languageCode=en&pageIndex=0&pageSize=24&urlName=Bad-luck-brian"
+ url = "http://version1.api.memegenerator.net/Instances_Select_ByPopular?languageCode=en&pageIndex=0&pageSize=24"
  resp = Net::HTTP.get_response(URI.parse(url))
  data = resp.body
 
@@ -24,5 +24,5 @@ require_relative 'markov.rb'
 
 top = Markov.new("top", top_text)
 bottom = Markov.new("bottom", bottom_text)
-puts top.gen_text(8)
-puts bottom.gen_text(8)
+puts top.gen_text(10)
+puts bottom.gen_text(10)
