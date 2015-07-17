@@ -7,7 +7,20 @@ import os
 import re
 import string
 import sys
+from peewee import *
 
+
+def select_dank_words(word_list):
+    """Makes a DB query and returns a list of the words ordered by
+    their dankness
+    """
+    return User.select(User.word).where(User.word in word_list).order_by(User.dankness)
+
+def select_dankest_word(word_list):
+    """Makes a DB query and returns the dankest word of the list
+    """
+    dank_words = select_dank_words(word_list)
+    return dank_words[0]
 
 def load_dankness(path=DATA_PATH + "dankness.csv"):
     """Read the dankness file and return a dictionary containing the dankness
