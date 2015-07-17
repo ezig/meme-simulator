@@ -25,3 +25,15 @@ class Meme(MSModel):
     meme_type_id = ForeignKeyField(
         MemeType, relate_name='memes'
     )
+
+class DankWord(MSModel):
+    id = PrimaryKeyField()
+    word = CharField(
+        max_length = 128, unique = True
+    )
+    dankness = DoubleField(
+        default = 0
+    )
+    count = IntegerField(
+        default = 0
+    )
