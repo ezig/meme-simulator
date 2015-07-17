@@ -8,12 +8,27 @@ import requests
 base_data_uri = "http://version1.api.memegenerator.net/Instances_Select_ByNew"
 base_gen_uri = "http://version1.api.memegenerator.net/Generators_Search"
 
+meme_names = ['Futurama', 'Success', 'Interesting', 'Willywonka', 'Philosoraptor', 'Simply', 'Brian', 'Greg', 'Scumbag']
+
+"""Keep in case my method failed
 meme_name_dictionary = {'Y-U-No': 2287719, 'Futurama-Fry': 1461840, 'Success-Kid': 1190989,
                         'The-Most-Interesting-Man-In-The-World': 1239075, 'Willywonka': 985064,
                         'Philosoraptor': 733671, 'One-Does-Not-Simply-A': 1146447,
                         'Bad-Luck-Brian-Meme': 653934, 'Good-Guy-Greg': 338941}
+"""
+
 
 initialize_db()
+
+def get_meme_dictionary(meme_names):
+	"""Gets the highest ranking meme generator for each meme in meme_names, returns a dictionary that maps
+	the urlName for the generator with the instancesCount
+	"""
+	meme_dictionary = {}
+	for meme_name in meme_names:
+		urlName, instancesCount = get_meme_generator(meme_name)
+		meme_dictionary[urlName] = instancesCount
+	return meme_dictionary
 
 def get_meme_generator(meme_name):
 	"""Queries for a meme generator matching the meme_name. Selects the top ranking (i.e. most memes)
@@ -30,6 +45,8 @@ def get_meme_generator(meme_name):
 	return (top_generator, top_instances)
 
 def get_memetadata(meme_name, count):
+	"""Populates the database with memes
+	"""
 	meme_type = MemeType.get_or_create(meme_type_name = meme_name)[0]
 
 	for i in range(0, count // 24):
@@ -43,6 +60,8 @@ def get_memetadata(meme_name, count):
 				score=meme['totalVotesScore'],
 				meme_type_id=meme_type
 			)
-
-for meme, count in meme_name_dictionary.items():
+			
+			
+meme_dictionary = get_meme_dictionary(meme_names)
+for meme, count in meme_dictionary.iteritems():
 	get_memetadata(meme, count)
