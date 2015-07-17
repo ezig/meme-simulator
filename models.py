@@ -2,6 +2,10 @@ from peewee import *
 
 db = SqliteDatabase('memes.db')
 
+def initialize_db():
+    db.connect()
+    db.create_tables([MemeType, Meme, FreshWord], safe=True)
+
 class MSModel(Model):
     class Meta:
         database = db
@@ -23,17 +27,17 @@ class Meme(MSModel):
         max_length=128
     )
     meme_type_id = ForeignKeyField(
-        MemeType, relate_name='memes'
+        MemeType, related_name='memes'
     )
 
-class DankWord(MSModel):
+class FreshWord(MSModel):
     id = PrimaryKeyField()
     word = CharField(
-        max_length = 128, unique = True
+        max_length=128, unique=True, index =True
     )
-    dankness = DoubleField(
-        default = 0
+    freshness = DoubleField(
+        default=0
     )
     count = IntegerField(
-        default = 0
+        default=0
     )
