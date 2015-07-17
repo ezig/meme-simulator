@@ -6,6 +6,7 @@ from models import *
 import requests
 
 base_data_uri = "http://version1.api.memegenerator.net/Instances_Select_ByNew"
+base_gen_uri = "http://version1.api.memegenerator.net/Generators_Search"
 
 meme_name_dictionary = {'Y-U-No': 2287719, 'Futurama-Fry': 1461840, 'Success-Kid': 1190989,
                         'The-Most-Interesting-Man-In-The-World': 1239075, 'Willywonka': 985064,
@@ -13,6 +14,20 @@ meme_name_dictionary = {'Y-U-No': 2287719, 'Futurama-Fry': 1461840, 'Success-Kid
                         'Bad-Luck-Brian-Meme': 653934, 'Good-Guy-Greg': 338941}
 
 initialize_db()
+
+def get_meme_generator(meme_name):
+	"""Queries for a meme generator matching the meme_name. Selects the top ranking (i.e. most memes)
+	generator and returns the generator's urlName and instancesCount as well.
+	"""
+	payload = {'q': meme_name, 'pageIndex': 0, 'pageSize': 24}
+	jsonResponse = requests.get(base_gen_uri, params = payload).json()
+	top_generator = ''
+	top_instances = 0
+	for generator in jsonResponse['result']:
+		if generator['instancesCount'] > top_instances:
+			top_instances = generator['instancesCount']
+			top_generator = generator['urlName']
+	return (top_generator, top_instances)
 
 def get_memetadata(meme_name, count):
 	meme_type = MemeType.get_or_create(meme_type_name = meme_name)[0]
