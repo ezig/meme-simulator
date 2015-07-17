@@ -11,14 +11,24 @@ from models import *
 
 from peewee import *
 
-def add_word(word, freshness):
-    fresh_word = FreshWord.get_or_create(
-        word=word
-    )
 
-    fresh_word.count += 1
-    fresh_word.freshness = freshness
-    fresh_word.save()
+def populate():
+    """Avoiding regex for now
+    """
+    for meme in Meme.select().where(Meme.score != 0):
+        text = meme.top_text + ' ' + meme.bottom_text
+        text = text.replace(',', ' ').lower()
+        text = text.replace('.', ' ')
+        words = text.split()
+        for word in words:
+            fresh_word, created = FreshWord.get_or_create(
+                word = word,
+                defaults={'freshness': meme.score, 'word_count': 1}
+            )
+            if !created:
+                fresh_word.freshness = meme.score + (fresh_word.freshness * fresh_word.word_count) / (fresh_word.word_count + 1)
+                fresh_word.word_count += 1
+                fresh_word.save()
 
 
 def get_word_freshness(word_list):
