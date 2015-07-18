@@ -32,3 +32,8 @@ class Meme(MSModel):
     score = IntegerField(
         default=0
     )
+
+    class Meta:
+        indexes = (
+            (('top_text', 'bottom_text'), True)
+        )
