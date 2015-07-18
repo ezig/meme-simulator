@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase('memes.db')
+db = SqliteDatabase('data/memes.db')
 
 def initialize_db():
     db.connect()

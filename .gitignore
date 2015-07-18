@@ -1,3 +1,5 @@
+data
+
 ### OSX ###
 .DS_Store
 .AppleDouble
@@ -25,4 +27,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
