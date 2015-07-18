@@ -16,6 +16,10 @@ def populate():
     """Avoiding regex for now
     """
     for meme in Meme.select().where(Meme.score != 0):
+        if meme.top_text is None:
+            meme.top_text = ''
+        if meme.bottom_text is None:
+            meme.bottom_text = ''
         text = meme.top_text + ' ' + meme.bottom_text
         text = text.replace(',', ' ').lower()
         text = text.replace('.', ' ')
@@ -25,8 +29,8 @@ def populate():
                 word = word,
                 defaults={'freshness': meme.score, 'word_count': 1}
             )
-            if !created:
-                fresh_word.freshness = meme.score + (fresh_word.freshness * fresh_word.word_count) / (fresh_word.word_count + 1)
+            if not created:
+                fresh_word.freshness = (meme.score + (fresh_word.freshness * fresh_word.word_count)) / (fresh_word.word_count + 1)
                 fresh_word.word_count += 1
                 fresh_word.save()
 
