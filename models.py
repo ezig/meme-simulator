@@ -29,6 +29,9 @@ class Meme(MSModel):
     meme_type_id = ForeignKeyField(
         MemeType, related_name='memes'
     )
+    score = IntegerField(
+        default=0
+    )
 
 class FreshWord(MSModel):
     id = PrimaryKeyField()
@@ -38,6 +41,6 @@ class FreshWord(MSModel):
     freshness = DoubleField(
         default=0
     )
-    count = IntegerField(
+    word_count = IntegerField(
         default=0
     )
