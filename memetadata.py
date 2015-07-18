@@ -4,6 +4,9 @@
 from models import *
 
 import requests
+import json
+import sys
+import os
 
 base_data_uri = "http://version1.api.memegenerator.net/Instances_Select_ByNew"
 base_gen_uri = "http://version1.api.memegenerator.net/Generators_Search"
@@ -60,8 +63,27 @@ def get_memetadata(meme_name, count):
 				score=meme['totalVotesScore'],
 				meme_type_id=meme_type
 			)
-			
-			
-meme_dictionary = get_meme_dictionary(meme_names)
-for meme, count in meme_dictionary.iteritems():
-	get_memetadata(meme, count)
+
+if __name__ == '__main__':
+	meme_dictionary = None
+
+	if len(sys.argv) == 2 and os.path.exists(sys.argv[1]):
+		try:
+			with open(sys.argv[1], 'r') as f:
+				meme_dictionary = json.load(f)
+		except:
+			raise
+	else:
+		meme_dictionary = get_meme_dictionary(meme_names)
+
+		outf = ""
+		if len(sys.argv) == 2:
+			outf = sys.argv[1]
+		else:
+			outf = 'meme_dict.json'
+
+		with open(outf, 'w') as f:
+			json.dump(meme_dictionary, f)
+
+	for meme, count in meme_dictionary.iteritems():
+		get_memetadata(meme, count)
