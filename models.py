@@ -25,10 +25,10 @@ class Meme(MSModel):
     id = PrimaryKeyField()
 
     top_text = CharField(
-        max_length=128, null=True
+        max_length=128
     )
     bottom_text = CharField(
-        max_length=128, null=True
+        max_length=128
     )
     meme_type_id = ForeignKeyField(
         MemeType, related_name='memes'
@@ -38,7 +38,7 @@ class Meme(MSModel):
     )
     class Meta:
         indexes = (
-            (('top_text', 'bottom_text'), True)
+            (('top_text', 'bottom_text'), True),
         )
 
 class FreshWord(MSModel):

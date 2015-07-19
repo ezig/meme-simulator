@@ -24,66 +24,69 @@ meme_name_dictionary = {'Y-U-No': 2287719, 'Futurama-Fry': 1461840, 'Success-Kid
 initialize_db()
 
 def get_meme_dictionary(meme_names):
-	"""Gets the highest ranking meme generator for each meme in meme_names, returns a dictionary that maps
-	the urlName for the generator with the instancesCount
-	"""
-	meme_dictionary = {}
-	for meme_name in meme_names:
-		urlName, instancesCount = get_meme_generator(meme_name)
-		meme_dictionary[urlName] = instancesCount
-	return meme_dictionary
+    """Gets the highest ranking meme generator for each meme in meme_names, returns a dictionary that maps
+    the urlName for the generator with the instancesCount
+    """
+    meme_dictionary = {}
+    for meme_name in meme_names:
+        urlName, instancesCount = get_meme_generator(meme_name)
+        meme_dictionary[urlName] = instancesCount
+    return meme_dictionary
 
 def get_meme_generator(meme_name):
-	"""Queries for a meme generator matching the meme_name. Selects the top ranking (i.e. most memes)
-	generator and returns the generator's urlName and instancesCount as well.
-	"""
-	payload = {'q': meme_name, 'pageIndex': 0, 'pageSize': 24}
-	jsonResponse = requests.get(base_gen_uri, params = payload).json()
-	top_generator = ''
-	top_instances = 0
-	for generator in jsonResponse['result']:
-		if generator['instancesCount'] > top_instances:
-			top_instances = generator['instancesCount']
-			top_generator = generator['urlName']
-	return (top_generator, top_instances)
+    """Queries for a meme generator matching the meme_name. Selects the top ranking (i.e. most memes)
+    generator and returns the generator's urlName and instancesCount as well.
+    """
+    payload = {'q': meme_name, 'pageIndex': 0, 'pageSize': 24}
+    jsonResponse = requests.get(base_gen_uri, params = payload).json()
+    top_generator = ''
+    top_instances = 0
+    for generator in jsonResponse['result']:
+        if generator['instancesCount'] > top_instances:
+            top_instances = generator['instancesCount']
+            top_generator = generator['urlName']
+    return (top_generator, top_instances)
 
 def get_memetadata(meme_name, count):
-	"""Populates the database with memes
-	"""
-	meme_type = MemeType.get_or_create(meme_type_name = meme_name)[0]
+    """Populates the database with memes
+    """
+    meme_type = MemeType.get_or_create(meme_type_name = meme_name)[0]
 
-	for i in range(0, count // 24):
-		payload = {'languageCode': 'en', 'pageIndex': i, 'pageSize': 24, 'urlName': meme_name}
-		jsonResponse = requests.get(base_data_uri, params = payload).json()
-		
-		for meme in jsonResponse['result']:
-			Meme.create (
-				top_text=meme['text0'],
-				bottom_text=meme['text1'],
-				score=meme['totalVotesScore'],
-				meme_type_id=meme_type
-			)
+    for i in range(0, count // 24):
+        print(i)
+        payload = {'languageCode': 'en', 'pageIndex': i, 'pageSize': 24, 'urlName': meme_name}
+        jsonResponse = requests.get(base_data_uri, params = payload).json()
+
+        try:
+            for meme in jsonResponse['result']:
+                Meme.create (
+                    top_text=meme['text0'].upper(),
+                    bottom_text=meme['text1'].upper(),
+                    score=meme['totalVotesScore'],
+                    meme_type_id=meme_type
+                )
+        except:
+            continue
 
 if __name__ == '__main__':
-	meme_dictionary = None
+    meme_dictionary = None
 
-	if len(sys.argv) == 2 and os.path.exists(sys.argv[1]):
-		try:
-			with open(sys.argv[1], 'r') as f:
-				meme_dictionary = json.load(f)
-		except:
-			raise
-	else:
-		meme_dictionary = get_meme_dictionary(meme_names)
+    if len(sys.argv) == 2 and os.path.exists(sys.argv[1]):
+        try:
+            with open(sys.argv[1], 'r') as f:
+                meme_dictionary = json.load(f)
+        except:
+            raise
+    else:
+        meme_dictionary = get_meme_dictionary(meme_names)
 
-		outf = ""
-		if len(sys.argv) == 2:
-			outf = sys.argv[1]
-		else:
-			outf = 'meme_dict.json'
+        outf = ""
+        if len(sys.argv) == 2:
+            outf = sys.argv[1]
+        else:
+            outf = 'meme_dict.json'
 
-		with open(outf, 'w') as f:
-			json.dump(meme_dictionary, f)
+        with open(outf, 'w') as f:
+            json.dump(meme_dictionary, f)
 
-	for meme, count in meme_dictionary.iteritems():
-		get_memetadata(meme, count)
+    get_memetadata('Futurama-Fry', meme_dictionary['Futurama-Fry'])
