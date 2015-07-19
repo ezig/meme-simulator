@@ -1,3 +1,7 @@
+> We don't read and write memes because it's cute. We read and write memes because we are members of the human race. And the human race is filled with passion. And medicine, law, business, engineering, these are noble pursuits and necessary to sustain life. But memes, dankness, macros, lulz, these are what we stay alive for. 
+
+> -John Keating, Dead Poets Society
+
 # meme-simulator
 
 Uses Markov chains to generate text for image macros. Human-made image macro text is barely comprehensible English anyway, so you probably won't be able to tell the difference.
