@@ -33,9 +33,15 @@ def populate():
                 fresh_word.freshness = (meme.score + (fresh_word.freshness * fresh_word.word_count)) / (fresh_word.word_count + 1)
                 fresh_word.word_count += 1
                 fresh_word.save()
+                
+def get_freshness(word):
+    """Makes a DB query and returns the freshness of a word
+    """
+    return (FreshWord
+                .select(FreshWord.freshness)
+                .where(FreshWord.word = word))
 
-
-def get_word_freshness(word_list):
+def sort_by_freshness(word_list):
     """Makes a DB query and returns a list of the words ordered by
     their freshness
     """
@@ -47,7 +53,7 @@ def get_word_freshness(word_list):
 def get_freshest_word(word_list):
     """Makes a DB query and returns the freshest word of the list
     """
-    return get_word_freshness(word_list)[0]
+    return sort_by_freshness(word_list)[0]
 
 # def load_dankness(path=DATA_PATH + "dankness.csv"):
 #     """Read the dankness file and return a dictionary containing the dankness
