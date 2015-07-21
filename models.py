@@ -4,11 +4,7 @@ db = SqliteDatabase('data/memes.db')
 
 def initialize_db():
     db.connect()
-    db.create_tables([MemeType, Meme, FreshWord], safe=True)
-
-def initialize_db():
-    db.connect()
-    db.create_tables([MemeType, Meme], safe=True)
+    db.create_tables([MemeType, Meme, FreshWord, Markov], safe=True)
 
 class MSModel(Model):
     class Meta:
@@ -39,6 +35,27 @@ class Meme(MSModel):
     class Meta:
         indexes = (
             (('top_text', 'bottom_text'), True),
+        )
+
+class Markov(MSModel):
+    id = PrimaryKeyField()
+
+    word1 = CharField (
+        max_length=24
+    )
+    word2 = CharField (
+        max_length=24
+    )
+    word3 = CharField (
+        max_length=24
+    )
+    is_top_text = BooleanField()
+    meme_type_id = ForeignKeyField(
+        MemeType, related_name='markovs'
+    )
+    class Meta:
+        indexes = (
+            (('word1', 'word2'), False)
         )
 
 class FreshWord(MSModel):
