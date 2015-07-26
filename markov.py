@@ -1,88 +1,109 @@
 import random as rand
-import pickle
+import sqlite3
 import os
 
 from models import *
 
 class Markov(object):
-    def __init__(self, text_list, cache_file):
-        self.text_list = text_list
-        self.cache = {}
-
-        if os.path.exists(cache_file):
-            try:
-                with open(cache_file, 'rb') as f:
-                    self.cache = pickle.load(f)
-            except:
-                raise
-        else:
-            self.gen_cache()
-
-            with open(cache_file, 'wb') as f:
-                pickle.dump(self.cache, f)
-
+    def __init__(self, meme_type, is_top_text):
+        self.meme_type = meme_type
+        self.is_top_text = is_top_text
 
     def gen_cache(self):
         # create a hash that maps each pair of consecutive words to all of the
         # words that follow the pair in the input text
-        for text in self.text_list:
-            if not text:
-                continue
+        def data_source():
+            entries = []
+            for meme in self.meme_type.memes:
+                text = ""
 
-            text = text.upper().split()
+                if self.is_top_text:
+                    text = meme.top_text
+                else:
+                    text = meme.bottom_text
 
-            if len(text) < 3:
-                continue
+                if not text:
+                    continue
 
-            self.update_cache(("", ""), text[0])
-            self.update_cache(("", text[0]), text[1])
+                text = text.upper().split()
 
-            for i in range(0, len(text) - 2):
-                self.update_cache((text[i], text[i + 1]), text[i + 2])
+                if len(text) < 3:
+                    continue
 
-            self.update_cache((text[-2], text[-1]), "")
-            self.update_cache((text[-1], ""), "")
+                entries.append(self.cache_entry("", "", text[0]))
+                entries.append(self.cache_entry("", text[0], text[1]))
 
-    def update_cache(self, state, word):
-        if state in self.cache:
-            self.cache[state].append(word)
-        else:
-            self.cache[state] = [word]
+                for i in range(0, len(text) - 2):
+                    entries.append(self.cache_entry(text[i], text[i + 1], text[i + 2]))
+
+                entries.append(self.cache_entry(text[-2], text[-1], ""))
+                entries.append(self.cache_entry(text[-1], "", ""))
+
+            return entries
+
+        with db.atomic():
+            data = data_source()
+            for i in range (0, len(data), 100):
+                MarkovEntry.insert_many(data[i:i + 100]).execute()
 
     def gen_text(self, size):
         # returns a string generated from the cache of `size` length
         word_list = []
 
-        word1 = rand.choice(self.cache[("","")])
-        word2 = rand.choice(self.cache[("", word1)])
+        word1 = rand.choice(self.lookup("", ""))
+        word2 = rand.choice(self.lookup("", word1))
 
         for _ in range(size):
             word_list.append(word1)
             state = (word1, word2)
 
             # get a word that follows the current state
-            word1, word2 = word2, rand.choice(self.cache[state])
+            word1, word2 = word2, rand.choice(self.lookup(word1, word2))
 
             if word1 == "":
                 break
 
         # concat together all of the words in the list
-        output_text = ""
-        for word in word_list:
-            output_text += " " + word
-        # get rid of the extra space at the very beginning
-        return output_text[1:]
+        return " ".join(word_list)
 
-top_text = []
-bottom_text = []
+    def cache_entry(self, word1, word2, word3):
+        return {'word1': word1,
+         'word2':word2,
+          'word3':word3,
+          'is_top_text':self.is_top_text,
+          'meme_type_id':self.meme_type}
 
-for meme in MemeType.get(meme_type_name="Futurama-Fry").memes:
-    top_text.append(meme.top_text)
-    bottom_text.append(meme.bottom_text)
+    def lookup(self, word1, word2):
+        word_list = []
 
-top_gen = Markov(top_text, 'data/top_markov_cache.p')
-bottom_gen = Markov(bottom_text, 'data/bottom_markov_cache.p')
+        conn = sqlite3.connect(dbname)
+        c = conn.cursor()
+        for row in c.execute("""SELECT * FROM markoventry
+                     WHERE word1 = ?
+                     AND word2 = ?
+                     AND is_top_text = ?
+                     AND meme_type_id_id = ?""",
+                     (word1, word2, int(self.is_top_text), self.meme_type.id)):
+            word_list.append(row[3])
+        conn.close()
 
-for i in range(10):
-    print(top_gen.gen_text(100))
-    print(bottom_gen.gen_text(100))
+        return word_list
+
+class Memekov(object):
+    def __init__(self, meme_type):
+        self.tt = Markov(meme_type, True)
+        self.bt = Markov(meme_type, False)
+
+    def gen_cache(self):
+        self.tt.gen_cache()
+        self.bt.gen_cache()
+
+    def gen_meme(self, size):
+        return (self.tt.gen_text(size), self.bt.gen_text(size))
+
+initialize_db()
+
+mk = Memekov(MemeType.get(MemeType.id==1))
+
+for i in range(0, 1):
+    print(mk.gen_meme(100))

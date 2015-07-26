@@ -1,10 +1,11 @@
 from peewee import *
 
-db = SqliteDatabase('data/memes.db')
+dbname = 'data/memes.db'
+db = SqliteDatabase(dbname)
 
 def initialize_db():
     db.connect()
-    db.create_tables([MemeType, Meme, FreshWord, Markov], safe=True)
+    db.create_tables([MemeType, Meme, FreshWord, MarkovEntry], safe=True)
 
 class MSModel(Model):
     class Meta:
@@ -37,7 +38,7 @@ class Meme(MSModel):
             (('top_text', 'bottom_text'), True),
         )
 
-class Markov(MSModel):
+class MarkovEntry(MSModel):
     id = PrimaryKeyField()
 
     word1 = CharField (
@@ -55,7 +56,7 @@ class Markov(MSModel):
     )
     class Meta:
         indexes = (
-            (('word1', 'word2'), False)
+            (('word1', 'word2', 'is_top_text', 'meme_type_id'), False),
         )
 
 class FreshWord(MSModel):
