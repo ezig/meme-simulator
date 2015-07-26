@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase('memes.db')
+db = SqliteDatabase('data/memes.db')
 
 def initialize_db():
     db.connect()
@@ -36,7 +36,7 @@ class Meme(MSModel):
 class FreshWord(MSModel):
     id = PrimaryKeyField()
     word = CharField(
-        max_length=128, unique=True, index =True
+        max_length=128, index =True
     )
     freshness = DoubleField(
         default=0
