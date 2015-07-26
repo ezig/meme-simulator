@@ -24,15 +24,17 @@ def populate():
         text = text.replace(',', ' ').lower()
         text = text.replace('.', ' ')
         words = text.split()
-        for word in words:
-            fresh_word, created = FreshWord.get_or_create(
-                word = word,
-                defaults={'freshness': meme.score, 'word_count': 1}
-            )
-            if not created:
-                fresh_word.freshness = (meme.score + (fresh_word.freshness * fresh_word.word_count)) / (fresh_word.word_count + 1)
-                fresh_word.word_count += 1
-                fresh_word.save()
+        with db.atomic():
+            for word in words:
+                fresh_word, created = FreshWord.get_or_create(
+                    word = word,
+                    defaults={'freshness': meme.score, 'word_count': 1}
+                )
+
+                if not created:
+                    fresh_word.freshness = (meme.score + (fresh_word.freshness * fresh_word.word_count)) / (fresh_word.word_count + 1)
+                    fresh_word.word_count += 1
+                    fresh_word.save()
 
 
 def get_word_freshness(word_list):
@@ -48,11 +50,3 @@ def get_freshest_word(word_list):
     """Makes a DB query and returns the freshest word of the list
     """
     return get_word_freshness(word_list)[0]
-
-# def load_dankness(path=DATA_PATH + "dankness.csv"):
-#     """Read the dankness file and return a dictionary containing the dankness
-#     score of each word
-#     """
-#     with open(path, encoding='utf8') as dankness_file:
-#         scores = [line.split(',') for line in dankness_file]
-#         return {word: float(score.strip()) for word, score in scores}
